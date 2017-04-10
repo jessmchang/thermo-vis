@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 This project was bootstrapped with [Create React App](https://github.com/facebookincubator/create-react-app).
 
 Below you will find some information on how to perform common tasks.<br>
@@ -1621,3 +1622,7 @@ Please refer to [this section](#resolving-heroku-deployment-errors).
 ## Something Missing?
 
 If you have ideas for more “How To” recipes that should be on this page, [let us know](https://github.com/facebookincubator/create-react-app/issues) or [contribute some!](https://github.com/facebookincubator/create-react-app/edit/master/packages/react-scripts/template/README.md)
+=======
+# thermo-viz
+Calculates time to heat up based on area, resistance, and voltage of joule heaters. Visualizes heating and cooling curves.
+>>>>>>> d66c66775b323bd51458d8a4ec3b74a21e748c66
