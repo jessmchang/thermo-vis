@@ -5,6 +5,7 @@
   "dependencies": {
     "rc-slider": "^7.0.0",
     "react": "^15.5.3",
+    "react-addons-shallow-compare": "^15.5.2",
     "react-dom": "^15.5.3"
   },
   "devDependencies": {

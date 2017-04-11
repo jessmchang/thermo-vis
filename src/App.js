@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import logo from './logo.svg';
 import './App.css';
+import {XYPlot, XAxis, YAxis, HorizontalGridLines, LineSeries} from 'react-vis';
 
 /* Slider imports */
 import 'rc-slider/assets/index.css';
@@ -27,6 +28,16 @@ const handle = (props) => {
 };
 
 const wrapperStyle = { width: 400, margin: 50 };
+const heat_coords = [];
+
+function heating_t(t_a, t_f, kappa, k_h, kelv, t){
+  var cooling_factor = Math.exp(-kelv*t);
+  return t_a + (k_h*cooling_factor)*t;
+}
+
+function cooling_t(t_a, t_o, kelv, t){
+  return t_a + (t_o-t_a)*Math.exp(-kelv*t);
+}
 
 const App = React.createClass({
   getInitialState(){
@@ -35,32 +46,40 @@ const App = React.createClass({
       resistance: 9.9,
       area: 320,
       voltage: 5,
+      heating_data: [],
+      cooling_data: []
     };
   },
   updateTime(){
-    // console.log("fds");
+    /* HEATING EQUATION VARIABLES */
     var t_a = 72;
     var t_f = 92;
     var kappa = 0.00186436;
     var k_h = (this.state.voltage*this.state.voltage) / (kappa*this.state.resistance*this.state.area);
     var kelv = 0.016;
 
+    this.state.heating_data = []; //clear heating coordinates
+
     for(var i = 0; i < 60; i++){
-      // console.log(k_h*Math.exp(-kelv*i));
-      var cooling_factor = Math.exp(-kelv*i);
-      console.log(Math.round(t_a - t_f + k_h*cooling_factor*i));
-      if(Math.round(t_a - t_f + k_h*cooling_factor*i) === 0){ //check if there exists a time within 60 sec, where the heater heats up to 92 degrees
+      if(Math.round(heating_t(t_a,t_f,kappa,k_h,kelv,i)) === t_f){ //check if there exists a time within 60 sec, where the heater heats up to 92 degrees
         this.setState({
           time: i,
         });
       }
+      this.state.heating_data.push({
+        x: i,
+        y: heating_t(t_a, t_f, kappa, k_h, kelv, i),
+      });
+      this.state.cooling_data.push({
+        x: i,
+        y: cooling_t(t_a, t_f, kelv, i),
+      });
     }
+    this.setState({
+      heating_data: this.state.heating_data,
+      cooling_data: this.state.cooling_data
+    })
 
-
-    /*set state of time right here*/
-    // this.setState({
-    //   time: t_a + k_h*Math.exp(-kelv*t)
-    // })
   },
   onResistanceChange(e){
     this.setState({
@@ -93,6 +112,41 @@ const App = React.createClass({
             <p>Time</p>
               <input value={this.state.time} />
           </div>
+          <XYPlot
+            yDomain={[70, 100]}
+            xDomain={[0, 60]}
+            width={500}
+            height={300}
+            fill={"transparent"}
+            >
+
+            <HorizontalGridLines />
+
+            <LineSeries
+              // color="red"
+              fill="transparent"
+              data={this.state.heating_data}/>
+            <XAxis title="Dt(s)"/>
+            <YAxis title = "Expected"/>
+          </XYPlot>
+
+          <XYPlot
+            yDomain={[70, 100]}
+            xDomain={[0, 60]}
+            width={500}
+            height={300}
+            fill={"transparent"}
+            >
+
+            <HorizontalGridLines />
+
+            <LineSeries
+              // color="red"
+              fill="transparent"
+              data={this.state.cooling_data}/>
+            <XAxis title="Dt(s)"/>
+            <YAxis title = "Expected"/>
+          </XYPlot>
       </div>
 
     );
