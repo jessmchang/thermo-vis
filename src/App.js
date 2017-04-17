@@ -28,7 +28,6 @@ const handle = (props) => {
 };
 
 const wrapperStyle = { width: 400, margin: 50 };
-const heat_coords = [];
 
 function heating_t(t_a, t_f, kappa, k_h, kelv, t){
   var cooling_factor = Math.exp(-kelv*t);
@@ -52,6 +51,8 @@ const App = React.createClass({
   },
   updateTime(){
     /* HEATING EQUATION VARIABLES */
+    console.log("UPDATE TIME: ");
+    console.log(this.state);
     var t_a = 72;
     var t_f = 92;
     var kappa = 0.00186436;
@@ -59,13 +60,17 @@ const App = React.createClass({
     var kelv = 0.016;
 
     this.state.heating_data = []; //clear heating coordinates
+    var t_heated = "out of range";
 
-    for(var i = 0; i < 60; i++){
-      if(Math.round(heating_t(t_a,t_f,kappa,k_h,kelv,i)) === t_f){ //check if there exists a time within 60 sec, where the heater heats up to 92 degrees
-        this.setState({
-          time: i,
-        });
+    for(var i = 0; i <= 60; i++){  //check if painting heats up within a minute
+      console.log(this.state.voltage);
+      console.log(Math.round(heating_t(t_a,t_f,kappa,k_h,kelv,i)));
+      if(Math.round(heating_t(t_a,t_f,kappa,k_h,kelv,i)) === t_f || Math.round(heating_t(t_a,t_f,kappa,k_h,kelv,i)) === t_f+1 ){
+        t_heated = i;
+      } else {
+        console.log("else case");
       }
+      //below, update the heating and cooling datasets to update graphs
       this.state.heating_data.push({
         x: i,
         y: heating_t(t_a, t_f, kappa, k_h, kelv, i),
@@ -76,33 +81,38 @@ const App = React.createClass({
       });
     }
     this.setState({
+      time: t_heated,
       heating_data: this.state.heating_data,
       cooling_data: this.state.cooling_data
     })
 
+
   },
   onResistanceChange(e){
+    var that = this;
     this.setState({
       resistance: e,
-    });
-    this.updateTime();
+    }, that.updateTime);  //pass updateTime as second callback to wait for state to be set.
   },
   onAreaChange(e){
+    var that = this;
     this.setState({
       area: e,
-    });
-    this.updateTime();
+    }, that.updateTime);
   },
   onVoltageChange(e){
+    var that = this;
+    console.log("voltage change");
+    console.log(e);
     this.setState({
       voltage: e,
-    });
-    this.updateTime();
+    }, that.updateTime);
+
   },
   render() {
     return (
-      <div className="App">
-          <div style={wrapperStyle}>
+      <div className="App grid">
+          <div className="grid__col grid__col--2-of-5" style={wrapperStyle}>
             <p>Resistance</p>
               <Slider min={9.9} max={78.5} defaultValue={15} handle={handle} onChange={this.onResistanceChange}/> <br/>
             <p>Area</p>
@@ -112,41 +122,48 @@ const App = React.createClass({
             <p>Time</p>
               <input value={this.state.time} />
           </div>
-          <XYPlot
-            yDomain={[70, 100]}
-            xDomain={[0, 60]}
-            width={500}
-            height={300}
-            fill={"transparent"}
-            >
 
-            <HorizontalGridLines />
 
-            <LineSeries
-              // color="red"
-              fill="transparent"
-              data={this.state.heating_data}/>
-            <XAxis title="Dt(s)"/>
-            <YAxis title = "Expected"/>
-          </XYPlot>
+          <div className="grid__col grid__col--3-of-5">
+            <XYPlot
+              yDomain={[70, 100]}
+              xDomain={[0, 60]}
+              width={500}
+              height={300}
+              fill={"transparent"}
+              >
 
-          <XYPlot
-            yDomain={[70, 100]}
-            xDomain={[0, 60]}
-            width={500}
-            height={300}
-            fill={"transparent"}
-            >
+              <HorizontalGridLines />
 
-            <HorizontalGridLines />
+              <LineSeries
+                // color="red"
+                fill="transparent"
+                data={this.state.heating_data}/>
+              <XAxis title="Dt(s)"/>
+              <YAxis title = "Expected"/>
+            </XYPlot>
 
-            <LineSeries
-              // color="red"
-              fill="transparent"
-              data={this.state.cooling_data}/>
-            <XAxis title="Dt(s)"/>
-            <YAxis title = "Expected"/>
-          </XYPlot>
+
+            <XYPlot
+              yDomain={[70, 100]}
+              xDomain={[0, 60]}
+              width={500}
+              height={300}
+              fill={"transparent"}
+              >
+
+              <HorizontalGridLines />
+
+              <LineSeries
+                // color="red"
+                fill="transparent"
+                data={this.state.cooling_data}/>
+              <XAxis title="Dt(s)"/>
+              <YAxis title = "Expected"/>
+            </XYPlot>
+          </div>
+
+
       </div>
 
     );
